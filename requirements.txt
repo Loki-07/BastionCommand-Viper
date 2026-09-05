@@ -1,0 +1,5 @@
+# Bastion Command - Desktop (Viper) dependencies
+# Pure-Python GUI rewrite - see plan for details.
+
+SQLAlchemy==2.0.45
+ttkbootstrap==1.10.1
