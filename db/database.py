@@ -11,7 +11,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Engine, create_engine, inspect, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from db.models import Base
@@ -22,17 +22,41 @@ _engine: Engine | None = None
 _SessionLocal: sessionmaker[Session] | None = None
 
 
+def _sync_schema(engine: Engine) -> None:
+    """Add any columns that exist on the models but not yet in the database file.
+
+    We only ever add nullable columns to existing tables (additive-only schema
+    changes), so a simple ``ALTER TABLE ... ADD COLUMN`` per missing column is
+    enough — this avoids "no such column" errors on a database file created
+    before a field was added, without needing a full migration framework.
+    """
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if table.name not in existing_tables:
+                continue  # brand new table — create_all already created it with all columns
+            existing_columns = {col["name"] for col in inspector.get_columns(table.name)}
+            for column in table.columns:
+                if column.name in existing_columns:
+                    continue
+                col_type = column.type.compile(engine.dialect)
+                conn.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN "{column.name}" {col_type}'))
+
+
 def init_db(db_path: Path | str = DEFAULT_DB_PATH) -> Engine:
-    """Create the engine, session factory, and any missing tables.
+    """Create the engine, session factory, and any missing tables/columns.
 
     Safe to call once at application startup. Existing tables are left
-    untouched (create_all only creates tables that don't already exist).
+    untouched by create_all (it only creates tables that don't already exist),
+    so a follow-up schema sync adds any columns a new model field introduced.
     """
     global _engine, _SessionLocal
 
     _engine = create_engine(f"sqlite:///{db_path}")
     _SessionLocal = sessionmaker(bind=_engine, expire_on_commit=False)
     Base.metadata.create_all(_engine)
+    _sync_schema(_engine)
     return _engine
 
 

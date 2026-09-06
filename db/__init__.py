@@ -2,11 +2,23 @@
 
 from db.database import get_engine, get_session, init_db
 from db.models import (
+    AARHistoryEntry,
     AffectedSystem,
     AffectedUser,
+    AfterActionReview,
     Base,
     Case,
+    CaseUpdate,
+    CommunicationLogEntry,
+    DueOut,
     IOC,
+    IncidentPOC,
+    IntelligenceReport,
+    PIR,
+    PointOfContact,
+    RCAHistoryEntry,
+    RootCauseAnalysis,
+    RunningAssessment,
     TimelineEvent,
 )
 
@@ -20,4 +32,16 @@ __all__ = [
     "AffectedSystem",
     "AffectedUser",
     "IOC",
+    "DueOut",
+    "RootCauseAnalysis",
+    "RCAHistoryEntry",
+    "IncidentPOC",
+    "AfterActionReview",
+    "AARHistoryEntry",
+    "CommunicationLogEntry",
+    "PointOfContact",
+    "PIR",
+    "RunningAssessment",
+    "IntelligenceReport",
+    "CaseUpdate",
 ]

@@ -13,13 +13,14 @@ Run with:
 import ttkbootstrap as ttk
 
 from db import init_db
+from ui.main_window import MainWindow
 
 
 def main():
     init_db()
 
     app = ttk.Window(title="Bastion Command", themename="darkly", size=(1000, 700))
-    ttk.Label(app, text="Bastion Command (Viper) - scaffold OK", font=("Segoe UI", 14)).pack(pady=40)
+    MainWindow(app)
     app.mainloop()
 
 

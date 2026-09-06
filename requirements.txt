@@ -3,3 +3,4 @@
 
 SQLAlchemy==2.0.45
 ttkbootstrap==1.10.1
+tzdata==2026.3
