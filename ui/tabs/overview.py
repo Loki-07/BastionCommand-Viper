@@ -29,7 +29,7 @@ class OverviewTab(ttk.Frame):
             self, textvariable=self.status_var, values=STATUS_OPTIONS, state="readonly", width=20
         ).grid(row=1, column=1, sticky="w", pady=(0, 6))
 
-        ttk.Label(self, text="Impact (1-5)").grid(row=1, column=2, sticky="w", pady=(0, 6))
+        ttk.Label(self, text="Priority Level (P) (1-5)").grid(row=1, column=2, sticky="w", pady=(0, 6))
         self.impact_var = tk.IntVar(value=1)
         ttk.Spinbox(self, from_=1, to=5, textvariable=self.impact_var, width=5).grid(
             row=1, column=3, sticky="w", pady=(0, 6)

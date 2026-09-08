@@ -11,6 +11,7 @@ from ui.constants import STATUS_OPTIONS
 from ui.expert_finder_window import ExpertFinderWindow
 from ui.new_case_dialog import NewCaseDialog
 from ui.timezone_converter_window import TimezoneConverterWindow
+from ui.widgets import build_app_header
 
 COLUMNS = ("case_name", "status", "impact", "urgency", "created_at")
 COLUMN_HEADINGS = {
@@ -32,6 +33,8 @@ class MainWindow(ttk.Frame):
 
         self._sort_column = "created_at"
         self._sort_reverse = True
+
+        build_app_header(self, subtitle="Incident Response Dashboard").pack(fill="x", pady=(0, 10))
 
         toolbar = ttk.Frame(self)
         toolbar.pack(fill="x", pady=(0, 10))

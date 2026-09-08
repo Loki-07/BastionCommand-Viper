@@ -4,9 +4,9 @@ in the reference app)."""
 
 STATUS_OPTIONS = ["Detection", "Containment", "Communication", "Recovery", "Closed"]
 EVENT_TYPES = ["detection", "containment", "compromise", "communication", "recovery"]
-ASSET_TYPES = ["Server", "Workstation", "Network Device", "Database", "Other"]
+ASSET_TYPES = ["Server", "Workstation", "Network Device", "Database", "Cloud Storage", "Other"]
 SYSTEM_STATUS_OPTIONS = ["Investigating", "Compromised", "Patched", "Quarantined", "Recovered", "Clean"]
-IOC_TYPES = ["IP", "Hash", "Domain", "Email", "Phone", "Hashtag", "Other"]
+IOC_TYPES = ["IP", "Hash", "Domain", "Email", "Phone", "Hashtag","URL", "File Path", "Registry Key", "Process Name", "Certificate", "File Name","Other"]  
 DUE_OUT_PRIORITIES = ["Low", "Medium", "High", "Critical"]
 DUE_OUT_STATUSES = ["Pending", "In Progress", "Completed"]
 POC_STATUS_OPTIONS = ["Employee", "Contractor", "Vendor", "Consultant"]
@@ -19,7 +19,7 @@ COMMUNICATION_TYPES = [
     "CTM",
     "Legal Request",
 ]
-VENDOR_EMPLOYEE_OPTIONS = ["Employee", "Vendor"]
+VENDOR_EMPLOYEE_OPTIONS = ["Employee", "Vendor", "Contractor","Partner"]
 
 # Color coding, matching the legacy app's DESIGN_LANGUAGE_GUIDE.md palette and its
 # Timeline.jsx TYPE_COLORS / DueOuts.jsx getPriorityColor mappings.

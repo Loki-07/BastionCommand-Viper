@@ -16,6 +16,7 @@ from ui.tabs import (
     ReportExportTab,
     TimelineTab,
 )
+from ui.widgets import build_app_header
 
 
 class CaseDetailWindow(ttk.Toplevel):
@@ -24,6 +25,8 @@ class CaseDetailWindow(ttk.Toplevel):
     def __init__(self, master, case_id: int, case_name: str):
         super().__init__(title=f"Case: {case_name}", master=master, transient=master, size=(900, 600))
         self.case_id = case_id
+
+        build_app_header(self, subtitle=f"Case: {case_name}").pack(fill="x")
 
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True, padx=10, pady=10)

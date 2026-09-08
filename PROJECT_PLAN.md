@@ -464,7 +464,7 @@ POCs, AAR, Communication Log, Report Export) are done and smoke-tested.
   **Passed.**
 
 ## Phase 7: Graphical Enhancements
-- Bring the graphical colors closer to the original via the design language guide in the legacy program
+- Bring the graphical colors closer to the original via the design language guide in the legacy program ✅ DONE
 - Timeline into a color coded graphical lay out (If not feesible in current design may be a new pop out option) ✅ DONE
 - Color Code Due Outs section ✅ DONE
 - Minor Updates: ✅ DONE
@@ -540,6 +540,47 @@ POCs, AAR, Communication Log, Report Export) are done and smoke-tested.
   confirmed deleting the `Case` cascade-deletes its `CaseUpdate` rows. Full repo
   byte-compiled clean. **Passed.**
 
+**Title Banner + Legacy Color Theme — done:**
+- [ui/assets/PO_Rook.png](ui/assets/PO_Rook.png) — rook graphic (moved here from
+  the repo root); used as both the app window/taskbar icon (`iconphoto`) and the
+  banner icon.
+- [ui/widgets.py](ui/widgets.py) — new `build_app_header()` renders a banner (rook
+  icon + **"Bastion Command: Viper"** title, optional subtitle) shown at the top
+  of the main dashboard window and every case-detail window, mirroring the
+  legacy web app's persistent page header. Title font resolves at runtime to the
+  first available of `Bahnschrift` / `Impact` / `Arial Black` (Bahnschrift ships
+  with Windows 10/11 and has a condensed, military/government signage look).
+- [ui/theme.py](ui/theme.py) (NEW) — registers a custom ttkbootstrap theme
+  (`"bastion"`) whose color roles are mapped directly to
+  `csim-app/DESIGN_LANGUAGE_GUIDE.md`'s documented hex values, so every widget
+  styled via built-in bootstyle roles (default buttons, `success`/`info`/
+  `warning`/`danger` variants, inputs, tabs, focus rings, Treeviews, etc.)
+  automatically matches the legacy web app's palette without editing every tab
+  file individually: `bg`=#0a0a0a (page bg), `dark`=#1a1a1a (panels/cards),
+  `border`/`inputbg` accents=#333333, `primary`/`success`=#00ff00 (the guide uses
+  green for every primary action button, checkbox/radio accent, and input focus
+  ring), `info`=#00d4ff (links/important data text, kept distinct from the green
+  action color), `warning`=#ffbb33, `danger`=#ff4444, `active` (hover)=#222222.
+  **Important gotcha:** the theme must be registered/switched via
+  `apply_bastion_theme(window)` called on the already-constructed
+  `ttkbootstrap.Window` (which is created first with a built-in placeholder
+  theme like `"darkly"`) — calling `Style()` standalone *before* any `Window`
+  exists causes tkinter to silently create a separate hidden default Tk root,
+  which then breaks `iconphoto()` (`TclError: not a photo image`) and other
+  resources tied to the real window. Registering/switching on the real window's
+  own `Style` instance avoids this.
+- [main.py](main.py) — constructs the window with `themename="darkly"`, then
+  calls `apply_bastion_theme(app)` immediately after, before setting the window
+  icon or building `MainWindow`.
+- **Checkpoint (validated):** automated smoke test — confirmed the `"bastion"`
+  theme registers and activates (`style.theme.name == "bastion"`), confirmed
+  `style.colors.primary`/`bg`/`success`/`info` match the design-guide hex values,
+  opened `MainWindow` and every tab of a real `CaseDetailWindow` under the new
+  theme with no errors. Full repo byte-compiled clean; app launched manually via
+  `python main.py` with no traceback. **Passed.**
+
+Phase 7 is now fully complete — no remaining items.
+
 
 
 ## Status Summary
@@ -553,4 +594,4 @@ POCs, AAR, Communication Log, Report Export) are done and smoke-tested.
 | 4 — Polish & Backlog | ✅ Done (MVP complete) |
 | 5 — RCA/AAR, Stakeholders, Due Outs, Report Export, Comm Log | ✅ Done |
 | 6 — CTI, Expert Finder, Interviews, Admin Customization, Time Zone Converter | ✅ Done (Interviews and Admin Customization deferred — handled by a different team / descoped) |
-| 7 — Graphical Enhancements (design language, timeline visualization) | 🟡 In progress (Color Coded Timeline + Due Outs + Minor Updates done; broader design-language color pass still open) |
+| 7 — Graphical Enhancements (design language, timeline visualization) | ✅ Done |
