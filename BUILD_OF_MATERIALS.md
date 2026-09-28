@@ -26,7 +26,7 @@ legal review of the complete license text or its notice requirements.
 | Application type | Local Windows desktop incident-response case-management application |
 | Language/runtime | Python 3.12.4 |
 | User interface | Tkinter/ttk with ttkbootstrap theming |
-| Data store | Local SQLite database (`bastion_command.db`) via SQLAlchemy |
+| Data store | User-selected local SQLite database (default suggestion: `bastion_command.db`) via SQLAlchemy |
 | Networking | No network-client, HTTP, socket, or telemetry imports found in the active Python source |
 | User-initiated outputs | Local report export (text/Markdown/JSON) and clipboard copy |
 
@@ -89,7 +89,8 @@ Internal imports are limited to the local `db` and `ui` packages.
 | Asset / data | Location | Use | Compliance action |
 | --- | --- | --- | --- |
 | Rook PNG graphic | [ui/assets/PO_Rook.png](ui/assets/PO_Rook.png) | Window/taskbar icon and application header graphic | Confirm the organization owns the supplied image or has documented permission to use and distribute it. Store source/provenance evidence with the release record. |
-| SQLite case database | `bastion_command.db` at the application root by default | Holds incident/case content, contacts, indicators, case updates, and related operational data | Treat as potentially sensitive incident-response data. Define encryption-at-rest, access-control, retention, backup, and secure-deletion requirements before deployment. Do not ship production data in installation media. |
+| SQLite case database | User-selected local `.db`/SQLite file; `bastion_command.db` is the startup suggestion | Holds incident/case content, contacts, indicators, case updates, and related operational data | Treat as potentially sensitive incident-response data. Define encryption-at-rest, access-control, retention, backup, and secure-deletion requirements before deployment. Do not ship production data in installation media. |
+| Database-location preferences | `%LOCALAPPDATA%\BastionCommand\Viper\database_locations.json` on Windows | Stores recent and user-marked favorite database file paths; never stores case content | Treat database paths as local operational metadata. Include the preference file in endpoint-backup/retention decisions where appropriate. |
 | Generated reports | User-selected local path | JSON, Markdown, or text export of case data | Exports may contain sensitive data. Apply classification, approved-storage, and sharing controls. |
 | Clipboard content | Local user clipboard | User-initiated report copy | Treat copied report contents as sensitive; document the operational handling expectation. |
 
@@ -98,8 +99,11 @@ Internal imports are limited to the local `db` and `ui` packages.
 - The active source scan found no HTTP client, socket, subprocess, browser,
   telemetry, analytics, or cloud-storage imports. Viper does not itself transmit
   case data over the network.
-- SQLAlchemy opens a local SQLite file through `sqlite:///...`; the product has
-  no server-side database dependency.
+- SQLAlchemy opens a user-selected local SQLite file through `sqlite:///...`; the
+  product has no server-side database dependency.
+- The database chooser records successfully opened locations in a local recent-list
+  and optionally as user-marked favorites. The preference file contains paths only,
+  never database content or credentials.
 - Version pins exist for the three direct Python dependencies. The transitive
   versions above are an observed environment snapshot, not a checked-in lock
   file. Before release, generate and approve a fully resolved lock/SBOM from the
