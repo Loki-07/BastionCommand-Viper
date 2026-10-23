@@ -1,0 +1,39 @@
+{
+  "schema_version": "viper-import-draft-v1",
+  "incident_number": "INC-123",
+  "source": {
+    "kind": "email",
+    "subject": "CAN: INC-123 Status Update - 1800Z",
+    "sender": "soc-oncall@example.org",
+    "received_at": "2026-09-25T18:05:00Z",
+    "reference": "outlook-message-id-AAMkADg0M2U"
+  },
+  "proposals": [
+    {
+      "kind": "communication_log",
+      "timestamp": "2026-09-25T18:00:00Z",
+      "comm_type": "CAN",
+      "summary": "1800Z CAN sent to working group - containment actions confirmed on 3 hosts.",
+      "notes": "Full CAN text retained in source email; this entry is a quick-reference pointer only.",
+      "evidence_excerpt": "\"As of 1800Z, containment actions have been completed on hosts WKS-104, WKS-118, and SRV-22...\"",
+      "confidence": "high"
+    },
+    {
+      "kind": "timeline",
+      "timestamp": "2026-09-25T17:42:00Z",
+      "description": "Containment actions completed on WKS-104, WKS-118, and SRV-22 per working group report.",
+      "type": "containment",
+      "confidence": "high"
+    },
+    {
+      "kind": "due_out",
+      "task": "Confirm EDR isolation holds on SRV-22 after next patch cycle.",
+      "owner": "SOC Tier 2",
+      "priority": "Medium",
+      "status": "Pending",
+      "due_date": "2026-10-02",
+      "confidence": "medium",
+      "evidence_excerpt": "\"Action item: re-verify isolation on SRV-22 post-patch.\""
+    }
+  ]
+}

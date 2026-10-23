@@ -20,6 +20,15 @@ COMMUNICATION_TYPES = [
     "Legal Request",
 ]
 VENDOR_EMPLOYEE_OPTIONS = ["Employee", "Vendor", "Contractor","Partner"]
+THREAT_ACTOR_TYPES = [
+    "Nation-State",
+    "Cybercriminal",
+    "Organized Crime",
+    "Hacktivist",
+    "Insider Threat",
+    "Unknown",
+    "Other",
+]
 
 # Color coding, matching the legacy app's DESIGN_LANGUAGE_GUIDE.md palette and its
 # Timeline.jsx TYPE_COLORS / DueOuts.jsx getPriorityColor mappings.

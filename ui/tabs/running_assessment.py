@@ -10,6 +10,7 @@ from tkinter import messagebox
 import ttkbootstrap as ttk
 
 from db import RunningAssessment, get_session
+from ui.tabs.threat_actors import ThreatActorsTab
 
 
 class RunningAssessmentTab(ttk.Frame):
@@ -18,13 +19,14 @@ class RunningAssessmentTab(ttk.Frame):
         self.case_id = case_id
 
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
+        self.rowconfigure(1, weight=2)
+        self.rowconfigure(5, weight=1)
 
         ttk.Label(self, text="Running Assessment", font="-weight bold").grid(
             row=0, column=0, sticky="w", pady=(0, 6)
         )
 
-        self.content_text = ttk.Text(self, width=60, height=14, wrap="word")
+        self.content_text = ttk.Text(self, width=60, height=10, wrap="word")
         self.content_text.grid(row=1, column=0, sticky="nsew", pady=(0, 6))
 
         self.status_label = ttk.Label(self, text="", bootstyle="secondary")
@@ -33,6 +35,11 @@ class RunningAssessmentTab(ttk.Frame):
         ttk.Button(self, text="Save", bootstyle="success", command=self._save).grid(
             row=3, column=0, sticky="e", pady=(6, 0)
         )
+
+        ttk.Label(self, text="Threat Actors", font="-weight bold").grid(
+            row=4, column=0, sticky="w", pady=(12, 6)
+        )
+        ThreatActorsTab(self, case_id).grid(row=5, column=0, sticky="nsew")
 
         self._load()
 

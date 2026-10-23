@@ -85,6 +85,9 @@ class Case(Base):
     intelligence_reports: Mapped[list["IntelligenceReport"]] = relationship(
         back_populates="case", cascade="all, delete-orphan"
     )
+    threat_actors: Mapped[list["ThreatActor"]] = relationship(
+        back_populates="case", cascade="all, delete-orphan"
+    )
     case_updates: Mapped[list["CaseUpdate"]] = relationship(
         back_populates="case", cascade="all, delete-orphan"
     )
@@ -391,6 +394,25 @@ class RunningAssessment(Base):
     doi: Mapped[datetime] = mapped_column(default=utcnow, onupdate=utcnow)  # Date of Intelligence
 
     case: Mapped["Case"] = relationship(back_populates="running_assessment")
+
+
+class ThreatActor(Base):
+    """A threat actor tracked against a case's Running Assessment — who is believed to
+    be behind the activity, what kind of actor they are, and who they're affiliated
+    with (e.g. a known APT group, a ransomware gang, a nation-state sponsor).
+    """
+
+    __tablename__ = "threat_actor"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("case.id"), nullable=False)
+    name: Mapped[str] = mapped_column(nullable=False)
+    actor_type: Mapped[str] = mapped_column(default="Unknown")  # Nation-State, Cybercriminal,
+    # Hacktivist, Insider Threat, Organized Crime, Unknown, Other
+    affiliation: Mapped[str | None] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column(default=utcnow)
+
+    case: Mapped["Case"] = relationship(back_populates="threat_actors")
 
 
 class IntelligenceReport(Base):

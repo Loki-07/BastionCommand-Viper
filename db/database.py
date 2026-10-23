@@ -66,6 +66,20 @@ def get_engine() -> Engine:
     return _engine
 
 
+def close_db() -> None:
+    """Dispose the engine, releasing file handles/connections.
+
+    Call this before re-encrypting an encrypted database's working copy on
+    app shutdown — SQLite must not have open connections while its file is
+    read back for encryption.
+    """
+    global _engine, _SessionLocal
+    if _engine is not None:
+        _engine.dispose()
+    _engine = None
+    _SessionLocal = None
+
+
 @contextmanager
 def get_session() -> Iterator[Session]:
     """Yield a SQLAlchemy session, committing on success and rolling back on error."""

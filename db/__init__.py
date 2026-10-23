@@ -1,6 +1,6 @@
 """Data layer package: SQLAlchemy models + engine/session setup."""
 
-from db.database import get_engine, get_session, init_db
+from db.database import close_db, get_engine, get_session, init_db
 from db.models import (
     AARHistoryEntry,
     AffectedSystem,
@@ -19,11 +19,13 @@ from db.models import (
     RCAHistoryEntry,
     RootCauseAnalysis,
     RunningAssessment,
+    ThreatActor,
     TimelineEvent,
 )
 
 __all__ = [
     "init_db",
+    "close_db",
     "get_engine",
     "get_session",
     "Base",
@@ -42,6 +44,7 @@ __all__ = [
     "PointOfContact",
     "PIR",
     "RunningAssessment",
+    "ThreatActor",
     "IntelligenceReport",
     "CaseUpdate",
 ]

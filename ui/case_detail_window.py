@@ -7,6 +7,7 @@ from ui.tabs import (
     AffectedSystemsTab,
     AffectedUsersTab,
     CommunicationLogTab,
+    CoworkImportTab,
     CTITab,
     DueOutsTab,
     IncidentPOCsTab,
@@ -43,6 +44,7 @@ class CaseDetailWindow(ttk.Toplevel):
         notebook.add(CommunicationLogTab(notebook, case_id), text="Comm Log")
         notebook.add(CTITab(notebook, case_id), text="CTI")
         notebook.add(ReportExportTab(notebook, case_id), text="Export")
+        notebook.add(CoworkImportTab(notebook, case_id), text="Cowork Import")
 
         self.bind("<Escape>", lambda _event: self.destroy())
 

@@ -5,6 +5,7 @@ from ui.tabs.affected_systems import AffectedSystemsTab
 from ui.tabs.affected_users import AffectedUsersTab
 from ui.tabs.case_updates import CaseUpdatesTab
 from ui.tabs.communication_log import CommunicationLogTab
+from ui.tabs.cowork_import import CoworkImportTab
 from ui.tabs.cti import CTITab
 from ui.tabs.due_outs import DueOutsTab
 from ui.tabs.incident_poc import IncidentPOCsTab
@@ -28,4 +29,5 @@ __all__ = [
     "CommunicationLogTab",
     "CTITab",
     "ReportExportTab",
+    "CoworkImportTab",
 ]

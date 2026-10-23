@@ -18,9 +18,12 @@ via `bastion-project.code-workspace`
 ## Non-goals (for now)
 
 - No multi-user authentication/login (single local user, no `User` model in MVP).
-- No network access, no encryption-at-rest module (legacy encryption code was dead code
-  anyway — see prior compliance review).
+- No network access.
 - No PDF/CSV export in the MVP (legacy used `reportlab`; revisit in Phase 4 backlog).
+
+(Encryption-at-rest was a non-goal through Phase 8 — the legacy app's SQLCipher/Fernet
+code was dead code, never wired into its live database connection. Revisited and
+implemented in Phase 9 below, as pure-Python envelope encryption — not SQLCipher.)
 
 ---
 
@@ -628,7 +631,126 @@ chats, Outlook email, and CAN reports.
   startup dialog offers them in a dropdown and lets the user mark or remove a path as
   a favorite; only local file paths are stored in the preference file.
 
+**Design decisions — resolved:** all four blocking decisions from
+[CLAUDE_COWORK_INTEGRATION.md](CLAUDE_COWORK_INTEGRATION.md) are now settled —
+CAN subject rule (must contain `CAN` + an `INC-\d+` pattern), draft handoff (a
+`cowork_imports/{incoming,approved,rejected}/` folder colocated with the active
+database, derived from the already-tracked DB path, no separate config), retention
+(30-day age-based auto-cleanup of `approved/`/`rejected/`, configurable; `incoming/`
+never auto-purged), and duplicate policy (warn only in the review UI, reviewer
+always decides, never auto-block/merge).
 
+**Implementation — done (initial pilot: Timeline / Communication Log / Due Out only,
+email-sourced drafts only):**
+- [services/import_drafts.py](services/import_drafts.py) — the whole local pipeline,
+  no Claude/Microsoft/network dependency: `get_cowork_import_paths()`/
+  `ensure_cowork_import_paths()` (colocated `cowork_imports/{incoming,approved,
+  rejected}/`, derived from `get_active_db_path()`); `validate_draft()` (schema
+  version, `INC-\d+` incident number, required `source` fields, per-proposal-kind
+  required/optional/enum field checks, rejects unknown fields); `scan_incoming_drafts()`;
+  `find_case_by_incident_number()` (exact match only); `detect_duplicate()` (best-effort
+  timestamp+type/task matching, warn-only, never blocks); `apply_proposal()` (creates
+  exactly one `TimelineEvent`/`CommunicationLogEntry`/`DueOut` row per approved
+  proposal); `finalize_draft()` (appends a reviewer/timestamp/decisions audit record,
+  moves the whole file to `approved/` or `rejected/`, never deletes at review time);
+  `get_retention_days()`/`set_retention_days()`/`purge_expired_drafts()` (30-day
+  default, same local-JSON-prefs pattern as `ui/database_locations.py`).
+- [ui/tabs/cowork_import.py](ui/tabs/cowork_import.py) — `CoworkImportTab`: a regular
+  Notebook tab (not a separate Toplevel, to match every other feature in this app),
+  wired into [ui/case_detail_window.py](ui/case_detail_window.py) as the final
+  "Cowork Import" tab. Requires the case to already have an Incident Number set
+  (Overview tab) before it will scan. Lists pending drafts matching the case's
+  incident number; selecting one lists its proposals with a duplicate-hint flag;
+  Approve Selected / Reject Selected (multi-select) / Edit Selected (a small generic
+  field-editor dialog) / Finalize Draft (applies every approved proposal in one
+  transaction, warns about any still-undecided proposals before treating them as
+  rejected, then archives the file).
+- [integrations/claude-cowork/](integrations/claude-cowork/) — the deployable Skill
+  package: `SKILL.md` (the actual Claude Cowork Skill — trigger conditions, hard
+  rules including prompt-injection defense and "never create a case", step-by-step
+  drafting process, output contract, file-naming convention), `README.md` (how the
+  pieces fit together + manual schema-validation instructions), `schema/
+  viper-import-draft-v1.json` (JSON Schema draft-07), `examples/can-email-draft.json`.
+  A Teams-chat example was intentionally omitted since this pilot's `source.kind` is
+  `"email"` only.
+- **Checkpoint (validated):** automated smoke test — CAN-subject detection regex
+  (positive/negative); folder auto-creation next to a fresh test database;
+  `validate_draft()` accepted a fully-valid draft with zero errors and correctly
+  flagged 3 distinct errors on a deliberately broken one (bad incident number, missing
+  source fields, unsupported proposal kind); `scan_incoming_drafts()` found 1 valid +
+  1 invalid file without crashing; exact incident-number case matching confirmed
+  (hit and miss); opened a real `CaseDetailWindow`, selected the "Cowork Import" tab,
+  confirmed it loaded the 1 matching draft with its 3 proposals; approved 2 proposals
+  (communication_log, due_out) and rejected 1 (timeline) via the real Treeview
+  selection + button handlers; finalized the draft and confirmed **only** the 2
+  approved rows were actually written to the database (the rejected timeline
+  proposal was not applied); confirmed the original file was removed from
+  `incoming/` and an equivalent file appeared in `approved/` with an appended
+  `review` block recording the exact per-proposal decisions; confirmed a tab refresh
+  no longer lists the now-processed draft as pending. Full repo byte-compiled clean.
+
+## Phase 9: Database Encryption at Rest ✅ DONE (pilot)
+
+**Objective:** Let a single user optionally encrypt their Viper database file at rest,
+without reintroducing the legacy app's "designed but never wired in" encryption
+anti-pattern, and without adding a compiled/native dependency (which was evaluated —
+SQLCipher — and explicitly ruled out; see repo memory for the full trade-off research).
+
+**Approach chosen:** pure-Python whole-file envelope encryption, built entirely on the
+`cryptography` package (Fernet + PBKDF2-HMAC-SHA256, 600,000 iterations). The database
+file on disk is one opaque encrypted container; while the app is running, a decrypted
+"working copy" exists at a stable, non-guessable path under
+`%LOCALAPPDATA%/BastionCommand/Viper/decrypted_cache/` (keyed by a hash of the
+encrypted file's path) so a leftover copy from an unclean shutdown can be recovered.
+Passphrase is prompted once per launch and never persisted anywhere (per explicit user
+decision) — held in memory only for the session, needed to re-encrypt on close.
+
+**New files:**
+- `security/envelope.py` — container format (magic bytes + salt + KDF iterations +
+  Fernet token), `encrypt_bytes`/`decrypt_bytes`/`encrypt_file`/`decrypt_file`,
+  `is_encrypted_container()`, `InvalidPassphraseError`.
+- `security/encrypted_database.py` — working-copy lifecycle: `create_encrypted_database()`
+  (new DB), `open_encrypted_database()` (decrypt-or-recover, returns `(path, recovered)`),
+  `encrypt_snapshot()`, `close_encrypted_database()` (re-encrypt + best-effort shred +
+  delete working copy), `EncryptionSession` dataclass + module-level
+  active-session getter/setter/`finalize_active_session()`.
+- `ui/passphrase_dialog.py` — `prompt_new_passphrase()` (set+confirm, ≥8 chars, for new
+  encrypted DBs) and `prompt_unlock_passphrase()` (for existing ones, with a retry/
+  "incorrect passphrase" message).
+
+**Changed files:**
+- `db/database.py`/`db/__init__.py` — added `close_db()` (disposes the engine; must run
+  before re-encrypting so SQLite has no open connections/locks on the working copy).
+- `main.py` — `_resolve_db_path_for_session()` branches on whether the selected path
+  exists/is a container: new file → ask to encrypt (yes → set+confirm passphrase,
+  no → plain legacy behavior unchanged); existing encrypted container → prompt passphrase
+  in a retry loop; existing non-container file → opened as-is (full backward
+  compatibility with every pre-Phase-9 database). `WM_DELETE_WINDOW` now calls
+  `close_db()` + `finalize_active_session()` before destroying the window; if
+  re-encryption fails, the window stays open (and the working copy is left intact) so
+  the user can retry rather than silently losing data.
+- `requirements.txt` — added `cryptography>=42`.
+
+**Known trade-offs (documented, not hidden):** this protects the file at rest when the
+app is closed, but a plaintext working copy exists on disk while the app runs (weaker
+than SQLCipher's page-level in-use encryption, which was evaluated and rejected — see
+repo memory for why: official Windows builds are Enterprise-only, and the free
+community-edition Windows build path isn't officially documented). OS-level disk
+encryption (BitLocker) remains the recommended defense-in-depth baseline underneath
+this. Not yet implemented: changing/rotating a passphrase on an existing database, and
+migrating an existing plain database to encrypted in place (both straightforward
+follow-ups on top of the same `security/envelope.py` primitives if needed later).
+
+**Checkpoint validation:** two temporary smoke-test scripts (written, run, then
+deleted) covered: envelope encrypt/decrypt round trip + wrong-passphrase rejection;
+new-encrypted-database creation + initial snapshot; clean close (re-encrypt + shred
+working copy); reopen-and-decrypt with data surviving the round trip; wrong passphrase
+rejected on reopen without leaking a working copy; crash recovery (leftover working
+copy reused, still gated by a correct-passphrase check against the master file) with a
+second case added "pre-crash" confirmed present after recovery; and `main.py`'s
+`_resolve_db_path_for_session()` exercised directly (via a real Tkinter root, with
+`messagebox.askyesno`/passphrase-dialog functions monkeypatched) across all four paths:
+new+encrypt, new+plain, existing-encrypted-correct-passphrase, existing-legacy-plain.
 
 ## Status Summary
 
@@ -642,4 +764,5 @@ chats, Outlook email, and CAN reports.
 | 5 — RCA/AAR, Stakeholders, Due Outs, Report Export, Comm Log | ✅ Done |
 | 6 — CTI, Expert Finder, Interviews, Admin Customization, Time Zone Converter | ✅ Done (Interviews and Admin Customization deferred — handled by a different team / descoped) |
 | 7 — Graphical Enhancements (design language, timeline visualization) | ✅ Done |
-| 8 — Claude Cowork Import Add-On | 🟡 Scoped (implementation not started) |
+| 8 — Claude Cowork Import Add-On | 🟡 In progress (design resolved, pilot implementation done — Timeline/Comm Log/Due Out, email-sourced drafts only) |
+| 9 — Database Encryption at Rest | ✅ Done (pilot — pure-Python envelope encryption; passphrase rotation/migrate-existing-DB not yet built) |
