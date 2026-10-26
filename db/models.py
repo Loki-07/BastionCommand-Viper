@@ -195,6 +195,9 @@ class DueOut(Base):
     priority: Mapped[str] = mapped_column(default="Medium")  # Low, Medium, High, Critical
     status: Mapped[str] = mapped_column(default="Pending")  # Pending, In Progress, Completed
     due_date: Mapped[str | None] = mapped_column()  # free-form/ISO date string, e.g. YYYY-MM-DD
+    # nullable: added after the original table existed, so older rows migrate in as NULL
+    # (see DUE_OUT_WORKSTREAMS in ui/constants.py for the fixed option list)
+    workstream: Mapped[str | None] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
 
     case: Mapped["Case"] = relationship(back_populates="due_outs")
@@ -413,11 +416,19 @@ class ThreatActor(Base):
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
 
     case: Mapped["Case"] = relationship(back_populates="threat_actors")
+    intelligence_reports: Mapped[list["IntelligenceReport"]] = relationship(
+        back_populates="threat_actor"
+    )
 
 
 class IntelligenceReport(Base):
     """A finished intelligence product documenting findings during an investigation
-    (e.g. "Threat Actor TTPs Analysis")."""
+    (e.g. "Threat Actor TTPs Analysis").
+
+    Optionally linked to one of the case's threat actors (see `ThreatActor`), which is
+    expected to already be assigned on the CTI > Running Assessment tab before a report
+    about that actor is written here.
+    """
 
     __tablename__ = "intelligence_report"
 
@@ -431,6 +442,10 @@ class IntelligenceReport(Base):
     has_iocs: Mapped[bool] = mapped_column(default=False)
     data_section: Mapped[str | None] = mapped_column(Text)  # detailed findings/analysis
     analyst_comments: Mapped[str | None] = mapped_column(Text)
+    threat_actor_id: Mapped[int | None] = mapped_column(ForeignKey("threat_actor.id"))
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
 
     case: Mapped["Case"] = relationship(back_populates="intelligence_reports")
+    threat_actor: Mapped["ThreatActor | None"] = relationship(
+        back_populates="intelligence_reports"
+    )

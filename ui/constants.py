@@ -9,6 +9,15 @@ SYSTEM_STATUS_OPTIONS = ["Investigating", "Compromised", "Patched", "Quarantined
 IOC_TYPES = ["IP", "Hash", "Domain", "Email", "Phone", "Hashtag","URL", "File Path", "Registry Key", "Process Name", "Certificate", "File Name","Other"]  
 DUE_OUT_PRIORITIES = ["Low", "Medium", "High", "Critical"]
 DUE_OUT_STATUSES = ["Pending", "In Progress", "Completed"]
+DUE_OUT_WORKSTREAMS = [
+    "Scope/Discovery",
+    "Containment",
+    "Eradication",
+    "Recovery",
+    "Legal Analysis",
+    "Communications",
+    "Remediation",
+]
 POC_STATUS_OPTIONS = ["Employee", "Contractor", "Vendor", "Consultant"]
 COMMUNICATION_TYPES = [
     "Vendor",

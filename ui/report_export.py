@@ -135,6 +135,7 @@ def gather_case_report(session, case_id: int) -> dict:
         "due_outs": [
             {
                 "task": d.task,
+                "workstream": d.workstream,
                 "owner": d.owner,
                 "priority": d.priority,
                 "status": d.status,
@@ -333,9 +334,9 @@ def format_as_markdown(data: dict) -> str:
     lines.append("## Due Outs")
     lines.append(
         _md_table(
-            ["Task", "Owner", "Priority", "Status", "Due Date"],
+            ["Task", "Workstream", "Owner", "Priority", "Status", "Due Date"],
             [
-                [d["task"], d["owner"], d["priority"], d["status"], d["due_date"]]
+                [d["task"], d["workstream"], d["owner"], d["priority"], d["status"], d["due_date"]]
                 for d in data["due_outs"]
             ],
         )
@@ -549,9 +550,9 @@ def format_as_text(data: dict) -> str:
     lines.append("--------")
     lines.append(
         _text_table(
-            ["Task", "Owner", "Priority", "Status", "Due Date"],
+            ["Task", "Workstream", "Owner", "Priority", "Status", "Due Date"],
             [
-                [d["task"], d["owner"], d["priority"], d["status"], d["due_date"]]
+                [d["task"], d["workstream"], d["owner"], d["priority"], d["status"], d["due_date"]]
                 for d in data["due_outs"]
             ],
         )
