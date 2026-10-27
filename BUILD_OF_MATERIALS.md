@@ -1,7 +1,7 @@
 # Bastion Command: Viper - Build of Materials
 
 **Prepared:** 2026-09-06  
-**Last updated:** 2026-10-26  
+**Last updated:** 2026-10-27  
 **Scope:** Active desktop application in this repository (`BastionCommand-Viper`).
 The legacy `csim-app` project in the adjacent workspace is reference-only and is
 not part of this inventory.
@@ -14,14 +14,18 @@ before distribution or production use.
 
 Direct dependency versions come from [requirements.txt](requirements.txt).
 Installed versions, package relationships, and license expressions were
-re-checked from the project's local `.venv` Python 3.12.4 environment on
-2026-10-26 using `python -m pip show`; the environment passed `python -m pip
-check` with no broken requirements. This refresh added the `cryptography`
-direct dependency (database encryption-at-rest, see below) and its transitive
-`cffi`/`pycparser` dependencies, and picked up version drift in `greenlet`,
-`typing_extensions`, and `Pillow` since the 2026-09-06 baseline. License values
-below are package-distribution metadata, not a substitute for a legal review of
-the complete license text or its notice requirements.
+re-checked from the project's local `.venv` Python 3.15.2 environment on
+2026-10-27 using `python -m pip show`; the environment passed `python -m pip
+check` with no broken requirements. This refresh upgraded the project's active
+runtime from CPython 3.12.4 to CPython 3.15.2 (latest stable release at the
+time of upgrade) to keep current with upstream security patches; all pinned
+dependency versions were reinstalled and re-verified against the new
+interpreter (no version changes to direct/transitive dependencies were
+required for the upgrade). The prior 3.12.4 virtual environment was retained
+as `.venv312-backup` pending confirmation the new environment is stable in
+ongoing use. License values below are package-distribution metadata, not a
+substitute for a legal review of the complete license text or its notice
+requirements.
 
 ## Application Summary
 
@@ -29,7 +33,7 @@ the complete license text or its notice requirements.
 | --- | --- |
 | Application | Bastion Command: Viper |
 | Application type | Local Windows desktop incident-response case-management application |
-| Language/runtime | Python 3.12.4 |
+| Language/runtime | Python 3.15.2 |
 | User interface | Tkinter/ttk with ttkbootstrap theming |
 | Data store | User-selected local SQLite database (default suggestion: `bastion_command.db`) via SQLAlchemy; optionally stored at rest as a pure-Python encrypted envelope container, decrypted to a local working copy only while the app is running (see Security section) |
 | Networking | No network-client, HTTP, socket, or telemetry imports found in the active Python source |
@@ -70,9 +74,9 @@ runtime rather than fetched by the application’s dependency file.
 
 | Component | Observed version | Use in Viper | Review note |
 | --- | --- | --- | --- |
-| CPython | 3.12.4 | Executes the application and provides most imported modules | Corporate packaging should use an approved CPython distribution and include its license notices. |
-| Tk/Tcl | 8.6.13 | Native desktop widgets underlying Tkinter/ttkbootstrap | Review the Tk/Tcl terms included with the approved Python distribution. |
-| SQLite | 3.45.3 | Embedded local database engine used through Python's SQLite support | SQLite is public domain; confirm policy treatment for bundled components. |
+| CPython | 3.15.2 | Executes the application and provides most imported modules | Corporate packaging should use an approved CPython distribution and include its license notices. This is an expedited security release (see CVE-2026-115557, CVE-2026-114583) and the current latest stable CPython release as of 2026-10-27. |
+| Tk/Tcl | 9.0.4 | Native desktop widgets underlying Tkinter/ttkbootstrap | Review the Tk/Tcl terms included with the approved Python distribution. Upgraded from Tk/Tcl 8.6.13 (bundled with the prior Python 3.12.4 runtime) to Tk/Tcl 9.0.4 (bundled with Python 3.15.2). |
+| SQLite | 3.53.4 | Embedded local database engine used through Python's SQLite support | SQLite is public domain; confirm policy treatment for bundled components. Upgraded from SQLite 3.45.3 (bundled with the prior Python 3.12.4 runtime). |
 | Windows fonts | OS supplied | `Bahnschrift`, with `Impact`/`Arial Black` fallbacks, is used when installed for the header title | Validate that use/distribution follows the Windows font license and that the application does not redistribute these font files. |
 
 ## Source Import Inventory
